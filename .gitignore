@@ -1,0 +1,4 @@
+*.pem
+*.csr
+certs/*.0
+certs/rucio_ca.srl
