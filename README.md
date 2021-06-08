@@ -6,9 +6,9 @@ Rucio is a data management tool that comes from the high-energy physics communit
 and was part of the [ATLAS experiment](https://atlas.cern/).
 
 This repository containers the following:
+  - The certificates for SSL between the Rucio cluster services and Rucio client to API
   - The Rucio cluster setup via docker-compose (in `rucio-cluster` directory)
   - The Rucio client setup via Docker (in `rucio-client` directory)
-  - The certificates for SSL between the Rucio cluster services and Rucio client to API
 
 Each of the sub-directories have README that explain further details of that component.
 
