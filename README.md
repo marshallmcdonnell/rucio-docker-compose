@@ -12,9 +12,15 @@ This repository containers the following:
 
 Each of the sub-directories have README that explain further details of that component.
 
-#**WARNING:** not in a working state!!! This repo is to reproduce my errors while setting up a docker-compose Rucio setup for development.
-Current error is during file upload in the `rucio-client/test/k8s-tutorial-test-script.sh`:
-*Commands*:
+# 
+
+:warning: **WARNING:** NOT IN A WORKING STATE!!! 
+
+This repo is to reproduce my errors while setting up a docker-compose Rucio setup for development.
+
+Following the ["Quickstart"](#quickstart) steps below, the current error is during file upload in the `rucio-client/test/k8s-tutorial-test-script.sh`:
+
+ - *Commands*:
 ```
 rucio upload --rse XRD1 --scope test file1
 rucio upload --rse XRD1 --scope test file2
@@ -22,7 +28,7 @@ rucio upload --rse XRD2 --scope test file3
 rucio upload --rse XRD2 --scope test file4
 ```
 
-*Output*:
+ - *Output*:
 ```
 2021-06-08 15:59:20,424	ERROR	The requested service is not available at the moment.
 Details: An unknown exception occurred.
