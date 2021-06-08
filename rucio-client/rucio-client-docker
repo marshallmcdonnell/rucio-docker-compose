@@ -1,0 +1,62 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+  echo "usage: rucio-client-docker RUCIO_SERVER_ADDRESS"
+  echo ""
+  echo "positional arguments:"
+  echo "  RUCIO_SERVER_ADDRESS   Addresss of cluster (Example: https://172.22.0.188:8443)"
+  echo ""
+  echo "optional environmental arguments"
+  echo ""
+  echo "  X509_CERT_DIR          Directory for the certificates (default: ../certs)"
+  echo "  RUCIO_CFG_AUTH_HOST    Address to the Rucio authentication server (default: same as host)"
+  echo "  RUCIO_CFG_CA_CERT      CA's certificate path in container (default: /opt/rucio/etc/ca.pem"
+  echo "  RUCIO_CFG_CLIENT_CERT  Client's certificate path in container (default:  /opt/rucio/etc/usercert.pem"
+  echo "  RUCIO_CFG_CLIENT_KEY   Clients's key path in container (default: /opt/rucio/etc/userkey.pem)"
+  echo "  RUCIO_CFG_AUTH_TYPE    Authorization type (default: userpass)"
+  echo "  RUCIO_CFG_USERNAME     Username for client (default: rse)"
+  echo "  RUCIO_CFG_PASSWORD     Password for client (default: secret)"
+  echo "  RUCIO_CFG_ACCOUNT      Rucio account that map to credentials (default: root)"
+  exit 1
+fi
+
+# Positional argument
+RUCIO_CFG_RUCIO_HOST=$1
+
+# (Optional) environmental arguments
+X509_CERT_DIR=${X509_CERT_DIR:-$(dirname "$0")/../certs}
+RUCIO_CFG_AUTH_HOST=${RUCIO_CFG_AUTH_HOST:-${RUCIO_CFG_RUCIO_HOST}}
+RUCIO_CFG_CA_CERT=${RUCIO_CFG_CA_CERT:-/opt/rucio/etc/ca.pem}
+RUCIO_CFG_CLIENT_CERT=${RUCIO_CFG_CLIENT_CERT:-/opt/rucio/etc/usercert.pem}
+RUCIO_CFG_CLIENT_KEY=${RUCIO_CFG_CLIENT_KEY:-/opt/rucio/etc/userkey.pem}
+RUCIO_CFG_AUTH_TYPE=${RUCIO_CFG_AUTH_TYPE:-userpass}
+RUCIO_CFG_USERNAME=${RUCIO_CFG_USERNAME:-rse}
+RUCIO_CFG_PASSWORD=${RUCIO_CFG_PASSWORD:-secret}
+RUCIO_CFG_ACCOUNT=${RUCIO_CFG_ACCOUNT:-root}
+
+# Expand to a full path for certificates directory
+X509_CERT_DIR=$(readlink -f ${X509_CERT_DIR})
+
+
+# Launch docker container for Rucio client
+docker container stop rucio-client
+docker container rm -f rucio-client
+docker run \
+  --net=host \
+  -e RUCIO_CFG_RUCIO_HOST=${RUCIO_CFG_RUCIO_HOST} \
+  -e RUCIO_CFG_AUTH_HOST=${RUCIO_CFG_AUTH_HOST} \
+  -e RUCIO_CFG_AUTH_TYPE=${RUCIO_CFG_AUTH_TYPE} \
+  -e RUCIO_CFG_USERNAME=${RUCIO_CFG_USERNAME} \
+  -e RUCIO_CFG_PASSWORD=${RUCIO_CFG_PASSWORD} \
+  -e RUCIO_CFG_ACCOUNT=${RUCIO_CFG_ACCOUNT} \
+  -e RUCIO_CFG_CA_CERT=${RUCIO_CFG_CA_CERT} \
+  -e RUCIO_CFG_CLIENT_CERT=${RUCIO_CFG_CLIENT_CERT} \
+  -e RUCIO_CFG_CLIENT_KEY=${RUCIO_CFG_CLIENT_KEY} \
+  -v $(pwd)/test:/test \
+  -w /test \
+  -v ${X509_CERT_DIR}/rucio_ca.pem:${RUCIO_CFG_CA_CERT} \
+  -v ${X509_CERT_DIR}/ruciouser.pem:${RUCIO_CFG_CLIENT_CERT} \
+  -v ${X509_CERT_DIR}/ruciouser.key.pem:${RUCIO_CFG_CLIENT_KEY} \
+  --name=rucio-client \
+  -it rucio/rucio-clients

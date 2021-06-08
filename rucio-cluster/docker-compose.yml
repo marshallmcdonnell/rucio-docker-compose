@@ -1,0 +1,136 @@
+version: "3"
+services:
+
+  rucio-db:
+    image: docker.io/postgres:11
+    environment:
+      - POSTGRES_USER=rucio
+      - POSTGRES_DB=rucio
+      - POSTGRES_PASSWORD=secret
+    command: ["-c", "fsync=off","-c", "synchronous_commit=off","-c", "full_page_writes=off"]
+
+  rucio-db-init:
+    image: docker.io/rucio/rucio-init:release-1.25.2
+    depends_on:
+      - rucio-db
+    environment:
+      - RUCIO_CFG_DATABASE_DEFAULT=postgresql://rucio:secret@rucio-db/rucio
+      - RUCIO_CFG_BOOTSTRAP_USERPASS_IDENTITY=rse
+      - RUCIO_CFG_BOOTSTRAP_USERPASS_PWD=secret
+
+  rucio:
+    image: docker.io/rucio/rucio-server:release-1.25.4
+    ports:
+      - "8443:443"
+    depends_on:
+      - rucio-db
+    volumes:
+      - $X509_CERT_DIR/rucio_ca.pem:/etc/grid-security/ca.pem
+      - $X509_CERT_DIR/hostcert_rucio.pem:/etc/grid-security/hostcert.pem
+      - $X509_CERT_DIR/hostcert_rucio.key.pem:/etc/grid-security/hostkey.pem
+    environment:
+      - RDBMS=postgres11
+      - RUCIO_ENABLE_SSL=True
+      - RUCIO_LOG_LEVEL=debug
+      - RUCIO_SERVER_TYPE=all
+      - RUCIO_CFG_DATABASE_DEFAULT=postgresql://rucio:secret@rucio-db/rucio
+      - RUCIO_CFG_MONITOR_CARBON_SERVER=graphite
+      - RUCIO_CFG_MONITOR_CARBON_PORT=8125
+      - RUCIO_CFG_MONITOR_USER_SCOPE=docker
+      - RUCIO_CFG_API_ENDPOINTS=accountlimits, accounts, archives, auth, config, credentials, dids, dirac, export, heartbeats, identities, import, lifetime_exceptions, locks, meta, ping, redirect, replicas, requests, rses, rules, scopes, subscriptions, tmp_dids, traces, vos
+
+  rucio-ui:
+    image: docker.io/rucio/rucio-server:release-1.25.4
+    ports:
+      - "443:443"
+    depends_on:
+      - rucio
+    volumes:
+      - $X509_CERT_DIR/rucio_ca.pem:/etc/grid-security/ca.pem
+      - $X509_CERT_DIR/hostcert_rucio.pem:/etc/grid-security/hostcert.pem
+      - $X509_CERT_DIR/hostcert_rucio.key.pem:/etc/grid-security/hostkey.pem
+    environment:
+      - RUCIO_LOG_LEVEL=debug
+      - RUCIO_CFG_DATABASE_DEFAULT=postgresql://rucio:secret@rucio-db/rucio
+      - RUCIO_CFG_MONITOR_CARBON_SERVER=graphite
+      - RUCIO_CFG_MONITOR_CARBON_PORT=8125
+      - RUCIO_CFG_MONITOR_USER_SCOPE=docker
+      - RUCIO_PROXY=https://rucio:8443
+      - RUCIO_AUTH_PROXY=https://rucio:8443
+
+  graphite:
+    image: docker.io/graphiteapp/graphite-statsd
+    ports:
+      - "8080:80"
+
+  fts:
+    image: docker.io/rucio/fts
+    ports:
+      - "8446:8446"
+      - "8449:8449"
+
+  ftsdb:
+    image: docker.io/mysql:5
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_USER=fts
+      - MYSQL_PASSWORD=fts
+      - MYSQL_ROOT_PASSWORD=fts
+      - MYSQL_DATABASE=fts
+
+  xrd1:
+    image: docker.io/rucio/xrootd
+    ports:
+      - "1094:1094"
+    environment:
+      - XRDPORT=1094
+    volumes:
+      - $X509_CERT_DIR/rucio_ca.pem:/etc/grid-security/certificates/4380cfc7.0
+      - $X509_CERT_DIR/hostcert_xrd1.pem:/tmp/xrdcert.pem:Z
+      - $X509_CERT_DIR/hostcert_xrd1.key.pem:/tmp/xrdkey.pem:Z
+
+  xrd2:
+    image: docker.io/rucio/xrootd
+    ports:
+      - "1095:1095"
+    environment:
+      - XRDPORT=1095
+    volumes:
+      - $X509_CERT_DIR/rucio_ca.pem:/etc/grid-security/certificates/4380cfc7.0
+      - $X509_CERT_DIR/hostcert_xrd2.pem:/tmp/xrdcert.pem:Z
+      - $X509_CERT_DIR/hostcert_xrd2.key.pem:/tmp/xrdkey.pem:Z
+
+  xrd3:
+    image: docker.io/rucio/xrootd
+    ports:
+      - "1096:1096"
+    environment:
+      - XRDPORT=1096
+    volumes:
+      - $X509_CERT_DIR/rucio_ca.pem:/etc/grid-security/certificates/4380cfc7.0
+      - $X509_CERT_DIR/hostcert_xrd3.pem:/tmp/xrdcert.pem:Z
+      - $X509_CERT_DIR/hostcert_xrd3.key.pem:/tmp/xrdkey.pem:Z
+
+  xrd4:
+    image: docker.io/rucio/xrootd
+    ports:
+      - "1097:1097"
+    environment:
+      - XRDPORT=1097
+    volumes:
+      - $X509_CERT_DIR/rucio_ca.pem:/etc/grid-security/certificates/4380cfc7.0
+      - $X509_CERT_DIR/hostcert_xrd4.pem:/tmp/xrdcert.pem:Z
+      - $X509_CERT_DIR/hostcert_xrd4.key.pem:/tmp/xrdkey.pem:Z
+
+  minio:
+    image: docker.io/minio/minio
+    ports:
+      - "9000:9000"
+    environment:
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password
+    volumes:
+      - $X509_CERT_DIR/hostcert_minio.pem:/root/.minio/certs/public.crt:Z
+      - $X509_CERT_DIR/hostcert_minio.key.pem:/root/.minio/certs/private.key:Z
+    command: ["server", "/data"]
