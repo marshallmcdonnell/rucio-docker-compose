@@ -1,7 +1,5 @@
 # Rucio docker-compose development setup (cluster + client)
 
-**WARNING:** not in a working state!!! This repo is to reproduce my errors while setting up a docker-compose Rucio setup for development.
-
 "[Rucio](https://rucio.cern.ch/) is a software framework that provides functionality to organize, manage, and access large volumes of scientific data using customisable policies." -Rucio website (hyperlink in quote)
 
 Rucio is a data management tool that comes from the high-energy physics community at [CERN](https://home.cern/)
@@ -13,6 +11,32 @@ This repository containers the following:
   - The certificates for SSL between the Rucio cluster services and Rucio client to API
 
 Each of the sub-directories have README that explain further details of that component.
+
+#**WARNING:** not in a working state!!! This repo is to reproduce my errors while setting up a docker-compose Rucio setup for development.
+Current error is during file upload in the `rucio-client/test/k8s-tutorial-test-script.sh`:
+*Commands*:
+```
+rucio upload --rse XRD1 --scope test file1
+rucio upload --rse XRD1 --scope test file2
+rucio upload --rse XRD2 --scope test file3
+rucio upload --rse XRD2 --scope test file4
+```
+
+*Output*:
+```
+2021-06-08 15:59:20,424	ERROR	The requested service is not available at the moment.
+Details: An unknown exception occurred.
+Details: Failed to stat file (No route to host)
+2021-06-08 15:59:22,275	ERROR	The requested service is not available at the moment.
+Details: An unknown exception occurred.
+Details: Failed to stat file (No route to host)
+2021-06-08 15:59:23,805	ERROR	The requested service is not available at the moment.
+Details: An unknown exception occurred.
+Details: Failed to stat file (No route to host)
+2021-06-08 15:59:25,443	ERROR	The requested service is not available at the moment.
+Details: An unknown exception occurred.
+Details: Failed to stat file (No route to host)
+```
 
 # Quickstart
 
