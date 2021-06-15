@@ -40,7 +40,7 @@ services:
       - RUCIO_CFG_API_ENDPOINTS=accountlimits, accounts, archives, auth, config, credentials, dids, dirac, export, heartbeats, identities, import, lifetime_exceptions, locks, meta, ping, redirect, replicas, requests, rses, rules, scopes, subscriptions, tmp_dids, traces, vos
 
   rucio-ui:
-    image: docker.io/rucio/rucio-server:release-1.25.4
+    image: docker.io/rucio/rucio-ui:release-1.25.4
     ports:
       - "443:443"
     depends_on:
